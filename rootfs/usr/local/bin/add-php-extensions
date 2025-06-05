@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# add-php-extensions - Installs PHP extensions
+#
+# Usage: add-php-extensions [extension1 extension2 ...]
+#
+# Examples:
+#   add-php-extensions pgsql redis
+
+set -e
+
+error_exit() {
+    echo "ERROR: $1" >&2
+    exit 1
+}
+
+PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
+
+if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
+    error_exit "Invalid PHP version format: $PHP_VERSION"
+fi
+
+map_extension_to_package() {
+    _ext="$1"
+    _package="php-${PHP_VERSION}-${_ext}"
+
+    case "$_ext" in
+        sqlite)
+            echo "php-${PHP_VERSION}-pdo_sqlite"
+            return
+            ;;
+        pgsql|mysql|dblib|oci|odbc)
+            echo "$_package php-${PHP_VERSION}-pdo_${_ext}"
+            return
+            ;;
+        *)
+            echo "$_package"
+            return
+            ;;
+    esac
+}
+
+# Collect all packages to install
+ALL_PACKAGES=""
+
+for ext in "$@"; do
+    [ -n "$ext" ] || continue
+    PACKAGES=$(map_extension_to_package "$ext")
+    ALL_PACKAGES="$ALL_PACKAGES $PACKAGES"
+done
+
+ALL_PACKAGES=$(echo "$ALL_PACKAGES" | xargs) # Trim and normalize spaces
+
+if [ -z "$ALL_PACKAGES" ]; then
+    echo "No extensions to install."
+    exit 0
+fi
+
+echo "Installing extensions:"
+echo "$ALL_PACKAGES" | tr ' ' '\n'
+
+if ! apk add --no-cache $ALL_PACKAGES; then
+    error_exit "Failed to install extensions"
+fi
+
+echo "Extensions installation complete."

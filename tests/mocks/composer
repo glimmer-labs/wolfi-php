@@ -1,0 +1,10 @@
+#!/bin/sh
+if echo "$@" | grep -q check-platform-reqs; then
+  if [ -n "$COMPOSER_MISSING_EXTENSIONS" ]; then
+    echo "$COMPOSER_MISSING_EXTENSIONS"
+  else
+    echo "All requirements fulfilled"
+  fi
+else
+  echo "composer called with: $*" >&2
+fi

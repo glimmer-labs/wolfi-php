@@ -1,0 +1,83 @@
+#!/bin/sh
+#
+# install-php - Installs PHP and optionally Composer
+#
+# Usage: install-php <php_version> [--composer]
+#
+# Arguments:
+#   php_version    PHP version to install (e.g., 8.3)
+#   --composer     If provided, also installs Composer
+#
+# Examples:
+#   install-php 8.3
+#   install-php 8.4 --composer
+
+# Exit on error
+set -e
+
+# Function to display error messages and exit
+error_exit() {
+    echo "ERROR: $1" >&2
+    exit 1
+}
+
+# Check if PHP version is provided
+if [ $# -eq 0 ]; then
+    error_exit "PHP version is required\nUsage: php-install <php_version> [--composer]\n"
+fi
+
+# First argument is the PHP version
+PHP_VERSION=$1
+shift
+
+# Validate PHP version format
+if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
+    error_exit "Invalid PHP version format: $PHP_VERSION. Expected format: X.Y (e.g., 8.3)"
+fi
+
+# Initialize flags
+INSTALL_COMPOSER=false
+
+# Parse arguments
+for arg in "$@"; do
+    case "$arg" in
+        "--composer")
+            INSTALL_COMPOSER=true
+            ;;
+        *)
+            error_exit "Unknown option: $arg"
+            ;;
+    esac
+done
+
+echo "Installing PHP $PHP_VERSION and core extensions for Laravel..."
+
+# Install PHP and core extensions for Laravel
+if ! apk add --no-cache \
+    ca-certificates \
+    php-${PHP_VERSION} \
+    php-${PHP_VERSION}-pdo \
+    php-${PHP_VERSION}-mbstring \
+    php-${PHP_VERSION}-xml \
+    php-${PHP_VERSION}-dom \
+    php-${PHP_VERSION}-fileinfo \
+    php-${PHP_VERSION}-openssl \
+    php-${PHP_VERSION}-phar \
+    php-${PHP_VERSION}-opcache \
+    php-${PHP_VERSION}-curl \
+    curl; then
+    error_exit "Failed to install PHP $PHP_VERSION and core extensions"
+fi
+
+# Install Composer if flag is set
+if [ "$INSTALL_COMPOSER" = true ]; then
+    echo "Installing Composer..."
+
+    if ! install-composer; then
+        error_exit "Failed to install Composer"
+    fi
+
+    echo "PHP $PHP_VERSION, Laravel required extensions and Composer installation completed successfully."
+else
+    echo "PHP $PHP_VERSION and Laravel required extensions installation completed successfully."
+fi

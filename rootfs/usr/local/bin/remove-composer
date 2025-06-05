@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Check if composer exists and remove it
+if [ -f "/usr/local/bin/composer" ]; then
+    echo "Removing Composer"
+    composer clear-cache
+    rm /usr/local/bin/composer
+else
+    echo "Composer is not installed at /usr/local/bin/composer"
+fi

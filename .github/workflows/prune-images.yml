@@ -1,0 +1,21 @@
+name: Prune Container Images
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # Run at 1:00 AM every day
+
+jobs:
+  prune-images:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          validate: true
+          keep-n-untagged: 5
+          older-than: 1 month
+          exclude-tags: latest
+          delete-ghost-images: true
+          delete-orphaned-images: true

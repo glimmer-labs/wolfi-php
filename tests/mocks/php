@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Simulate `php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;'`
+if echo "$@" | grep -q 'PHP_MAJOR_VERSION'; then
+  echo "8.3"
+  exit 0
+fi
+
+# Simulate hash_file for composer checksum
+if echo "$@" | grep -q 'hash_file'; then
+  echo "dummyhash"
+  exit 0
+fi
+
+# Simulate copy commands
+if echo "$@" | grep -q 'copy('; then
+  exit 0
+fi
+
+echo "php mock called with $@" >&2
+exit 1
