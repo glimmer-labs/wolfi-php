@@ -1,5 +1,19 @@
 #!/bin/sh
 
+WOLFI_BASE_FLAG=false
+
+for arg in "$@"; do
+    case "$arg" in
+        "--wolfi-base")
+            WOLFI_BASE_FLAG=true
+            ;;
+        *)
+            echo "Unknown option: $arg" >&2
+            exit 1
+            ;;
+    esac
+done
+
 remove-composer
 
 # Remove all scripts in /usr/local/bin (except this script for now)
@@ -9,6 +23,10 @@ for script in install-composer add-php-extensions add-composer-extensions instal
         rm "/usr/local/bin/$script"
     fi
 done
+
+if [ "$WOLFI_BASE_FLAG" = true ]; then
+    apk del apk-tools wolfi-keys wolfi-base
+fi
 
 # Finally, remove this script itself
 echo "Removing cleanup script"
