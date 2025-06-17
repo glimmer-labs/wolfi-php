@@ -3,7 +3,7 @@
 A Docker image based on Wolfi Linux "optimized" for Laravel applications.
 
 ```dockerfile
-FROM ghcr.io/laravel-glimmer/wolfi-php@latest
+FROM ghcr.io/laravel-glimmer/wolfi-php:latest
 ```
 
 ## Overview
