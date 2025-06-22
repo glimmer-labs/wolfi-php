@@ -65,7 +65,7 @@ echo "Installing $ENGINE $PHP_VERSION and core extensions for Laravel..."
 # Install PHP and core extensions for Laravel
 if ! apk add --no-cache \
     ca-certificates \
-    $([ "$PHP_APK_PREFIX" = "php-frankenphp" ] && echo "frankenphp-${PHP_VERSION}" || echo "") \
+    $([ "$PHP_APK_PREFIX" = "php-frankenphp" ] && echo "frankenphp-${PHP_VERSION} ${PHP_APK_PREFIX}-${PHP_VERSION}-pcntl" || echo "") \
     ${PHP_APK_PREFIX}-${PHP_VERSION} \
     ${PHP_APK_PREFIX}-${PHP_VERSION}-pdo \
     ${PHP_APK_PREFIX}-${PHP_VERSION}-mbstring \
