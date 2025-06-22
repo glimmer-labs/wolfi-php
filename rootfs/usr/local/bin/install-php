@@ -7,10 +7,11 @@
 # Arguments:
 #   php_version    PHP version to install (e.g., 8.3)
 #   --composer     If provided, also installs Composer
+#   --frankenphp   If provided, installs frankenphp php and extensions instead of normal php
 #
 # Examples:
 #   install-php 8.3
-#   install-php 8.4 --composer
+#   install-php 8.4 --composer --frankenphp
 
 # Exit on error
 set -e
@@ -23,7 +24,7 @@ error_exit() {
 
 # Check if PHP version is provided
 if [ $# -eq 0 ]; then
-    error_exit "PHP version is required\nUsage: php-install <php_version> [--composer]\n"
+    error_exit "PHP version is required Usage: php-install <php_version> [--composer] [--frankenphp]"
 fi
 
 # First argument is the PHP version
@@ -36,6 +37,7 @@ if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
 fi
 
 # Initialize flags
+PHP_APK_PREFIX="php"
 INSTALL_COMPOSER=false
 
 # Parse arguments
@@ -44,27 +46,36 @@ for arg in "$@"; do
         "--composer")
             INSTALL_COMPOSER=true
             ;;
+        "--frankenphp")
+            add-shyim-repo
+            PHP_APK_PREFIX="php-frankenphp"
+            ;;
         *)
             error_exit "Unknown option: $arg"
             ;;
     esac
 done
 
-echo "Installing PHP $PHP_VERSION and core extensions for Laravel..."
+# Fallback in case the script is called twice
+PHP_APK_PREFIX=$(apk info -e "frankenphp-${PHP_VERSION}" > /dev/null 2>&1 && echo "php-frankenphp" || echo $PHP_APK_PREFIX)
+
+ENGINE=$([ "$PHP_APK_PREFIX" = "php-frankenphp" ] && echo "FrankenPHP" || echo "PHP")
+echo "Installing $ENGINE $PHP_VERSION and core extensions for Laravel..."
 
 # Install PHP and core extensions for Laravel
 if ! apk add --no-cache \
     ca-certificates \
-    php-${PHP_VERSION} \
-    php-${PHP_VERSION}-pdo \
-    php-${PHP_VERSION}-mbstring \
-    php-${PHP_VERSION}-xml \
-    php-${PHP_VERSION}-dom \
-    php-${PHP_VERSION}-fileinfo \
-    php-${PHP_VERSION}-openssl \
-    php-${PHP_VERSION}-phar \
-    php-${PHP_VERSION}-opcache \
-    php-${PHP_VERSION}-curl \
+    $([ "$PHP_APK_PREFIX" = "php-frankenphp" ] && echo "frankenphp-${PHP_VERSION}" || echo "") \
+    ${PHP_APK_PREFIX}-${PHP_VERSION} \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-pdo \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-mbstring \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-xml \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-dom \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-fileinfo \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-openssl \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-phar \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-opcache \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-curl \
     curl; then
     error_exit "Failed to install PHP $PHP_VERSION and core extensions"
 fi
@@ -77,7 +88,7 @@ if [ "$INSTALL_COMPOSER" = true ]; then
         error_exit "Failed to install Composer"
     fi
 
-    echo "PHP $PHP_VERSION, Laravel required extensions and Composer installation completed successfully."
+    echo "$ENGINE $PHP_VERSION, Laravel required extensions and Composer installation completed successfully."
 else
-    echo "PHP $PHP_VERSION and Laravel required extensions installation completed successfully."
+    echo "$ENGINE $PHP_VERSION and Laravel required extensions installation completed successfully."
 fi

@@ -15,6 +15,7 @@ error_exit() {
 }
 
 PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
+PHP_APK_PREFIX=$(apk info -e "frankenphp-${PHP_VERSION}" > /dev/null 2>&1 && echo "php-frankenphp" || echo "php")
 
 if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
     error_exit "Invalid PHP version format: $PHP_VERSION"
@@ -22,19 +23,19 @@ fi
 
 map_extension_to_package() {
     _ext="$1"
-    _package="php-${PHP_VERSION}-${_ext}"
+    _package="${PHP_APK_PREFIX}-${PHP_VERSION}-${_ext}"
 
     case "$_ext" in
         sqlite)
-            echo "php-${PHP_VERSION}-pdo_sqlite"
+            echo "${PHP_APK_PREFIX}-${PHP_VERSION}-pdo_sqlite"
             return
             ;;
         mysql|mysqli)
-            echo "php-${PHP_VERSION}-mysqli php-${PHP_VERSION}-mysqlnd php-${PHP_VERSION}-pdo_mysql"
+            echo "${PHP_APK_PREFIX}-${PHP_VERSION}-mysqli ${PHP_APK_PREFIX}-${PHP_VERSION}-mysqlnd ${PHP_APK_PREFIX}-${PHP_VERSION}-pdo_mysql"
             return
             ;;
         pgsql|dblib|oci|odbc)
-            echo "$_package php-${PHP_VERSION}-pdo_${_ext}"
+            echo "$_package ${PHP_APK_PREFIX}-${PHP_VERSION}-pdo_${_ext}"
             return
             ;;
         *)
