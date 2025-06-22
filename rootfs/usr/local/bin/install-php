@@ -76,6 +76,7 @@ if ! apk add --no-cache \
     ${PHP_APK_PREFIX}-${PHP_VERSION}-phar \
     ${PHP_APK_PREFIX}-${PHP_VERSION}-opcache \
     ${PHP_APK_PREFIX}-${PHP_VERSION}-curl \
+    ${PHP_APK_PREFIX}-${PHP_VERSION}-iconv \
     curl; then
     error_exit "Failed to install PHP $PHP_VERSION and core extensions"
 fi
