@@ -29,7 +29,11 @@ map_extension_to_package() {
             echo "php-${PHP_VERSION}-pdo_sqlite"
             return
             ;;
-        pgsql|mysql|dblib|oci|odbc)
+        mysql|mysqli)
+            echo "php-${PHP_VERSION}-mysqli php-${PHP_VERSION}-mysqlnd php-${PHP_VERSION}-pdo_mysql"
+            return
+            ;;
+        pgsql|dblib|oci|odbc)
             echo "$_package php-${PHP_VERSION}-pdo_${_ext}"
             return
             ;;
