@@ -48,3 +48,19 @@ teardown() {
   [[ "$output" == *"install-composer called"* ]]
   [[ "$output" == *"PHP 8.3, Laravel required extensions and Composer installation completed successfully."* ]]
 }
+
+@test "installs FrankenPHP without composer" {
+  run ./install-php-test.sh 8.3 --frankenphp
+  [ "$status" -eq 0 ]
+  echo $output
+  [[ "$output" == *"Installing FrankenPHP 8.3 and core extensions for Laravel..."* ]]
+  [[ "$output" == *"FrankenPHP 8.3 and Laravel required extensions installation completed successfully."* ]]
+}
+
+@test "installs FrankenPHP with composer" {
+  run ./install-php-test.sh 8.3 --composer --frankenphp
+  [ "$status" -eq 0 ]
+  echo $output
+  [[ "$output" == *"Installing FrankenPHP 8.3 and core extensions for Laravel..."* ]]
+  [[ "$output" == *"FrankenPHP 8.3, Laravel required extensions and Composer installation completed successfully."* ]]
+}
