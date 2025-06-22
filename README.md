@@ -20,6 +20,7 @@ The image includes scripts to easily install PHP, Composer, and required PHP ext
 - Easy installation of extra PHP extensions supported by Wolfi
 - Automatic detection and installation of extensions required by your Composer dependencies
 - Adds www-data user and group for FPM process (not installed by default)
+- Supports using FrankenPHP as an alternative to base PHP (uses [Shyim repository](https://github.com/shyim/wolfi-php))
 
 ## Available Scripts
 
@@ -28,12 +29,13 @@ The image includes scripts to easily install PHP, Composer, and required PHP ext
 Installs PHP and core extensions required for Laravel.
 
 ```
-install-php <php_version> [--composer]
+install-php <php_version> [--composer] [--frankenphp]
 ```
 
 Arguments:
 - `php_version`: PHP version to install (e.g., 8.3, 8.4)
 - `--composer`: Optional flag to also install Composer
+- `--frankenphp`: Optional flag to install FrankenPHP instead of base PHP (uses [Shyim repository](https://github.com/shyim/wolfi-php))
 
 ### add-php-extensions
 
@@ -83,6 +85,9 @@ Removes all utility scripts to reduce the final image size.
 ```
 do-cleanup
 ```
+
+Options:
+- `--wolfi-base`: Deletes the wolfi-base package, which is not needed in production images
 
 ## Environment Variables
 
