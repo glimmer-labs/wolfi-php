@@ -1,5 +1,17 @@
 FROM cgr.dev/chainguard/wolfi-base:latest
 
+# FrankenPHP
+RUN mkdir -p /config /data
+
+ENV XDG_CONFIG_HOME /config
+ENV XDG_DATA_HOME /data
+
+EXPOSE 80
+EXPOSE 443
+EXPOSE 443/udp
+EXPOSE 2019
+
+# PHP
 ENV PHP_FPM_USER=www-data \
     PHP_FPM_GROUP=www-data \
     PHP_FPM_ACCESS_LOG=/proc/self/fd/2 \
@@ -24,6 +36,8 @@ ENV PHP_FPM_USER=www-data \
     PHP_SESSION_GC_PROBABILITY=1
 
 RUN adduser -u 82 www-data -D
+
+EXPOSE 9000
 
 COPY rootfs/ /
 RUN chmod +x /usr/local/bin/*
