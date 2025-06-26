@@ -1,10 +1,8 @@
 FROM cgr.dev/chainguard/wolfi-base:latest
 
 # FrankenPHP
-RUN mkdir -p /config /data
-
-ENV XDG_CONFIG_HOME /config
-ENV XDG_DATA_HOME /data
+ENV XDG_CONFIG_HOME=/config
+ENV XDG_DATA_HOME=/data
 
 EXPOSE 80
 EXPOSE 443
@@ -12,6 +10,18 @@ EXPOSE 443/udp
 EXPOSE 2019
 
 # PHP
+ENV PHP_ERROR_REPORTING="" \
+    PHP_DISPLAY_ERRORS=On \
+    PHP_DISPLAY_STARTUP_ERRORS=On \
+    PHP_UPLOAD_MAX_FILESIZE=8M \
+    PHP_POST_MAX_SIZE=8M \
+    PHP_MAX_EXECUTION_TIME=30 \
+    PHP_MEMORY_LIMIT=128M \
+    PHP_SESSION_HANDLER=files \
+    PHP_SESSION_SAVE_PATH="" \
+    PHP_SESSION_GC_PROBABILITY=1
+
+# PHP-FPM
 ENV PHP_FPM_USER=www-data \
     PHP_FPM_GROUP=www-data \
     PHP_FPM_ACCESS_LOG=/proc/self/fd/2 \
@@ -23,21 +33,12 @@ ENV PHP_FPM_USER=www-data \
     PHP_FPM_PM_MAX_SPARE_SERVERS=3 \
     PHP_FPM_PM_MAX_REQUESTS=0 \
     PHP_FPM_PM_STATUS_PATH=/-/fpm/status \
-    PHP_FPM_PING_PATH=/-/fpm/ping \
-    PHP_ERROR_REPORTING="" \
-    PHP_DISPLAY_ERRORS=On \
-    PHP_DISPLAY_STARTUP_ERRORS=On \
-    PHP_UPLOAD_MAX_FILESIZE=8M \
-    PHP_POST_MAX_SIZE=8M \
-    PHP_MAX_EXECUTION_TIME=30 \
-    PHP_MEMORY_LIMIT=128M \
-    PHP_SESSION_HANDLER=files \
-    PHP_SESSION_SAVE_PATH="" \
-    PHP_SESSION_GC_PROBABILITY=1
-
-RUN adduser -u 82 www-data -D
+    PHP_FPM_PING_PATH=/-/fpm/ping
 
 EXPOSE 9000
+RUN adduser -u 82 www-data -D
 
 COPY rootfs/ /
 RUN chmod +x /usr/local/bin/*
+
+WORKDIR /app
