@@ -12,7 +12,7 @@ This Docker image provides a lightweight and secure environment for running Lara
 
 The image includes scripts to easily install PHP, Composer, and required PHP extensions for Laravel applications.
 
-## Features
+## Base Features
 
 - Based on Wolfi Linux (cgr.dev/chainguard/wolfi-base)
 - Supports any PHP version that Wolfi supports (8.0, 8.3, 8.4, etc.)
@@ -21,6 +21,45 @@ The image includes scripts to easily install PHP, Composer, and required PHP ext
 - Automatic detection and installation of extensions required by your Composer dependencies
 - Adds www-data user and group for FPM process (not installed by default)
 - Supports using FrankenPHP as an alternative to base PHP (uses [Shyim repository](https://github.com/shyim/wolfi-php))
+
+## FrankenPHP Features
+If you choose to use FrankenPHP instead of the base PHP, the image will also include the following features:
+- Support for runnning Laravel Octane applications with FrankenPHP (requires `pcntl` extension, which is installed by default when using FrankenPHP)
+- XDG Config and Data directories set in the same way as the official FrankenPHP image
+- A default Caddyfile as the official FrankenPHP does, with the same available environment variables:
+    - `SERVER_NAME` - The server name for Caddy. Default is `localhost` - This controls also the listing port of Caddy, use `:8000` as example for port `8000`
+    - `FRANKENPHP_CONFIG` - Allows setting configuration for FrankenPHP specific like: `worker ./public/index.php`
+    - `CADDY_GLOBAL_OPTIONS` - Allows setting global options for Caddy like: `debug`
+    - `CADDY_EXTRA_CONFIG` - Allows setting extra Caddy configuration like add new virtual host: `foo.com { root /app/public }`
+    - `CADDY_SERVER_EXTRA_DIRECTIVES` - Allows setting extra Caddy configuration for the default virtual host.
+- You can override the default Caddyfile by mounting your own Caddyfile at `/etc/caddy/Caddyfile` in your Dockerfile or at runtime.
+
+## Notes
+This image has a default `WORKDIR` which is `/app`, so you can use it as your application root. You can change it in your Dockerfile if needed.
+
+This image doesn't contain a default `ENTRYPOINT` or `CMD`, so you must set it in your Dockerfile. For example:
+- PHP-FPM:
+    ```dockerfile
+    ENTRYPOINT [ "php-fpm"] 
+    CMD [ "--nodaemonize" ]
+    ```
+- FrankenPHP:
+    ```dockerfile
+    ENTRYPOINT [ "frankenphp", "run" ]
+    CMD [ "--config", "/etc/caddy/Caddyfile" ]
+    ```
+
+Nor does it have a Healthcheck set, so you can add one in your Dockerfile if needed. For example:
+- PHP-FPM:
+    ```dockerfile
+    ADD --chmod=0755 https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/master/php-fpm-healthcheck /usr/local/bin/php-fpm-healthcheck
+
+    HEALTHCHECK --interval=5s --timeout=1s CMD php-fpm-healthcheck || exit 1
+    ```
+- FrankenPHP:
+    ```dockerfile
+    HEALTHCHECK CMD curl -f http://localhost:2019/metrics || exit 1
+    ```
 
 ## Available Scripts
 
@@ -91,7 +130,22 @@ Options:
 
 ## Environment Variables
 
-The image supports the following environment variables for PHP and PHP-FPM configuration:
+The image supports the following environment variables for PHP configuration:
+
+```
+PHP_ERROR_REPORTING=""
+PHP_DISPLAY_ERRORS=On
+PHP_DISPLAY_STARTUP_ERRORS=On
+PHP_UPLOAD_MAX_FILESIZE=8M
+PHP_POST_MAX_SIZE=8M
+PHP_MAX_EXECUTION_TIME=30
+PHP_MEMORY_LIMIT=128M
+PHP_SESSION_HANDLER=files
+PHP_SESSION_SAVE_PATH=""
+PHP_SESSION_GC_PROBABILITY=1
+```
+
+And for PHP-FPM:
 
 ```
 PHP_FPM_USER=www-data
@@ -106,16 +160,6 @@ PHP_FPM_PM_MAX_SPARE_SERVERS=3
 PHP_FPM_PM_MAX_REQUESTS=0
 PHP_FPM_PM_STATUS_PATH=/-/fpm/status
 PHP_FPM_PING_PATH=/-/fpm/ping
-PHP_ERROR_REPORTING=""
-PHP_DISPLAY_ERRORS=On
-PHP_DISPLAY_STARTUP_ERRORS=On
-PHP_UPLOAD_MAX_FILESIZE=8M
-PHP_POST_MAX_SIZE=8M
-PHP_MAX_EXECUTION_TIME=30
-PHP_MEMORY_LIMIT=128M
-PHP_SESSION_HANDLER=files
-PHP_SESSION_SAVE_PATH=""
-PHP_SESSION_GC_PROBABILITY=1
 ```
 
 ## Common Use Cases
