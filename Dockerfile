@@ -3,6 +3,7 @@ FROM cgr.dev/chainguard/wolfi-base:latest
 # FrankenPHP
 ENV XDG_CONFIG_HOME=/config
 ENV XDG_DATA_HOME=/data
+ENV GODEBUG=cgocheck=0
 
 EXPOSE 80
 EXPOSE 443
