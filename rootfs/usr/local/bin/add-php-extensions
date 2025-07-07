@@ -21,28 +21,37 @@ if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
     error_exit "Invalid PHP version format: $PHP_VERSION"
 fi
 
-map_extension_to_package() {
+map_extension() {
     _ext="$1"
-    _package="${PHP_APK_PREFIX}-${PHP_VERSION}-${_ext}"
 
     case "$_ext" in
         sqlite)
-            echo "${PHP_APK_PREFIX}-${PHP_VERSION}-pdo_sqlite"
+            echo "$(ext_to_apk pdo_sqlite)"
             return
             ;;
         mysql|mysqli)
-            echo "${PHP_APK_PREFIX}-${PHP_VERSION}-mysqli ${PHP_APK_PREFIX}-${PHP_VERSION}-mysqlnd ${PHP_APK_PREFIX}-${PHP_VERSION}-pdo_mysql"
+            echo "$(ext_to_apk mysqli) $(ext_to_apk mysqlnd) $(ext_to_apk pdo_mysql)"
             return
             ;;
         pgsql|dblib|oci|odbc)
-            echo "$_package ${PHP_APK_PREFIX}-${PHP_VERSION}-pdo_${_ext}"
+            echo "$(ext_to_apk $_ext) $(ext_to_apk pdo_$_ext)"
+            return
+            ;;
+        swoole)
+            echo "$(ext_to_apk swoole) $(ext_to_apk posix) $(ext_to_apk pcntl)"
             return
             ;;
         *)
-            echo "$_package"
+            echo "$(ext_to_apk $_ext)"
             return
             ;;
     esac
+}
+
+ext_to_apk() {
+    _ext="$1"
+    echo "${PHP_APK_PREFIX}-${PHP_VERSION}-${_ext}"
+    return
 }
 
 # Collect all packages to install
@@ -50,7 +59,7 @@ ALL_PACKAGES=""
 
 for ext in "$@"; do
     [ -n "$ext" ] || continue
-    PACKAGES=$(map_extension_to_package "$ext")
+    PACKAGES=$(map_extension "$ext")
     ALL_PACKAGES="$ALL_PACKAGES $PACKAGES"
 done
 
