@@ -3,7 +3,7 @@
 A Docker image based on Wolfi Linux "optimized" for Laravel applications.
 
 ```dockerfile
-FROM ghcr.io/laravel-glimmer/wolfi-php:latest
+FROM ghcr.io/glimmer-labs/wolfi-php:latest
 ```
 
 ## Overview
@@ -167,7 +167,7 @@ PHP_FPM_PING_PATH=/-/fpm/ping
 ### Development Container with Composer
 
 ```dockerfile
-FROM ghcr.io/laravel-glimmer/wolfi-php:latest
+FROM ghcr.io/glimmer-labs/wolfi-php:latest
 
 RUN install-php 8.4 --composer
 # Add specific extensions needed by your application
@@ -188,7 +188,7 @@ For production environments, it's recommended to use the `--check-only` flag wit
 > We recommend using a [multi-stage](#multi-stage-build-pattern) build pattern for production containers to keep the final image size small and secure.
 
 ```dockerfile
-FROM ghcr.io/laravel-glimmer/wolfi-php:latest
+FROM ghcr.io/glimmer-labs/wolfi-php:latest
 
 RUN install-php 8.4 --composer
 RUN add-php-extensions pgsql redis
@@ -218,7 +218,7 @@ We recommend using a multi-stage build pattern for production containers to keep
 
 ```dockerfile
 # Base stage
-FROM ghcr.io/laravel-glimmer/wolfi-php:latest AS base
+FROM ghcr.io/glimmer-labs/wolfi-php:latest AS base
 
 RUN install-php 8.4
 RUN add-php-extensions pgsql redis

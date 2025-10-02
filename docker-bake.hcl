@@ -3,7 +3,7 @@ variable "REGISTRY" {
 }
 
 variable "IMAGE_OWNER" {
-  default = "laravel-glimmer"
+  default = "glimmer-labs"
 }
 
 variable "IMAGE_NAME" {
@@ -27,7 +27,7 @@ target default {
       "org.opencontainers.image.authors" = "Haruki1707 https://github.com/Haruki1707",
       "org.opencontainers.image.source" = "https://github.com/${IMAGE_OWNER}/${IMAGE_NAME}",
       "org.opencontainers.image.url" = "https://github.com/${IMAGE_OWNER}/${IMAGE_NAME}/pkgs/container/${IMAGE_NAME}",
-      "org.opencontainers.image.vendor" = "Laravel Glimmer",
+      "org.opencontainers.image.vendor" = "Glimmer Labs",
       "org.opencontainers.image.description" = "A Docker image based on Wolfi Linux 'optimized' for Laravel applications. Includes scripts to easily install PHP, Composer, and required PHP extensions.",
   }
 }
