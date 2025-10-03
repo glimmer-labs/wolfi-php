@@ -130,12 +130,15 @@ Options:
 
 ## Environment Variables
 
-The image supports the following environment variables for PHP configuration:
+The image supports the following environment variables for PHP configuration (with their default values):
 
 ```
+PHP_EXPOSE=Off
 PHP_ERROR_REPORTING=""
-PHP_DISPLAY_ERRORS=On
-PHP_DISPLAY_STARTUP_ERRORS=On
+PHP_DISPLAY_ERRORS=Off
+PHP_DISPLAY_STARTUP_ERRORS=Off
+PHP_LOG_ERRORS=Off
+PHP_ERROR_LOG=/var/log/php_errors.log
 PHP_UPLOAD_MAX_FILESIZE=8M
 PHP_POST_MAX_SIZE=8M
 PHP_MAX_EXECUTION_TIME=30
