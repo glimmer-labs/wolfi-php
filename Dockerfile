@@ -45,4 +45,6 @@ RUN adduser -u 82 www-data -D
 COPY rootfs/ /
 RUN chmod +x /usr/local/bin/*
 
+RUN add-glimmer-labs-repo
+
 WORKDIR /app
