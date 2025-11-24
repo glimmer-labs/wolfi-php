@@ -1,0 +1,25 @@
+#!/bin/sh
+
+[ $# -lt 2 ] && {
+    printf "Usage: %s <color> <text>\n" "$0" >&2
+    exit 1
+}
+
+color_name=$1
+shift
+text="$*"
+
+case "$color_name" in
+    black)   code="30" ;;
+    red)     code="31" ;;
+    green)   code="32" ;;
+    yellow)  code="33" ;;
+    blue)    code="34" ;;
+    magenta) code="35" ;;
+    cyan)    code="36" ;;
+    white)   code="37" ;;
+    *) echo "Unknown color" >&2; exit 1 ;;
+esac
+
+printf "\033[%sm%b\033[0m\n" "$code" "$text"
+
