@@ -13,6 +13,8 @@ FROM ghcr.io/glimmer-labs/wolfi-php:<php-version>
 ```
 > Replace `<php-version>` with the desired PHP version. Supported versions are any PHP version that Wolfi supports (e.g., `8.3`, `8.4`, `8.5`, etc.)
 
+> FrankenPHP is not supported in pre-built images. You must install it using the `install-php` script with the `--frankenphp` flag. 
+
 ## Overview
 
 This Docker image provides a lightweight and secure environment for running Laravel applications. It's based on the Wolfi Linux (un)distribution, which is designed specifically for containers.
@@ -82,6 +84,8 @@ Arguments:
 - `php_version`: PHP version to install (e.g., 8.3, 8.4)
 - `--composer`: Optional flag to also install Composer
 - `--frankenphp`: Optional flag to install FrankenPHP instead of base PHP (uses [Shyim repository](https://github.com/shyim/wolfi-php))
+
+> Is not required to use `install-php` if you are using a pre-built image with a specific PHP version (e.g., `ghcr.io/glimmer-labs/wolfi-php:8.5`)
 
 ### add-php-extensions
 
@@ -252,9 +256,10 @@ We recommend using a multi-stage build pattern for production containers to keep
 
 ```dockerfile
 # Base stage
-FROM ghcr.io/glimmer-labs/wolfi-php:latest AS base
+FROM ghcr.io/glimmer-labs/wolfi-php:8.4 AS base
 
-RUN install-php 8.4
+# Not required cause we are using a pre-built image with PHP 8.4
+# RUN install-php 8.4
 RUN add-php-extensions pgsql redis
 
 WORKDIR /app
@@ -265,6 +270,7 @@ FROM base as composer
 RUN install-composer
 
 COPY ./composer.json composer.lock ./
+
 # Check if all required PHP extensions are installed
 RUN add-composer-extensions --no-dev --check-only
 
