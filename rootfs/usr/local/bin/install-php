@@ -13,7 +13,7 @@
 #   install-php 8.3
 #   install-php 8.4 --composer --frankenphp
 
-EXTENSIONS="curl date dom fileinfo filter hash iconv json libxml mbstring opcache openssl pcre phar readline session tokenizer xml zlib pdo"
+EXTENSIONS="ctype curl date dom fileinfo filter hash iconv json libxml mbstring opcache openssl pcre phar readline session tokenizer xml zlib pdo"
 
 set -e
 

@@ -178,7 +178,8 @@ PHP_FPM_PING_PATH=/-/fpm/ping
 ```
 
 ## Predefined PHP Extensions
-The following PHP extensions are pre-installed when you install PHP using the `install-php` script:
+The following PHP extensions are installed when you install PHP using the `install-php` script or use a pre-built image with a specific PHP version:
+- ctype
 - curl
 - date
 - dom
