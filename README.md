@@ -166,6 +166,29 @@ PHP_FPM_PM_STATUS_PATH=/-/fpm/status
 PHP_FPM_PING_PATH=/-/fpm/ping
 ```
 
+## Predefined PHP Extensions
+The following PHP extensions are pre-installed when you install PHP using the `install-php` script:
+- curl
+- date
+- dom
+- fileinfo
+- filter
+- hash
+- iconv
+- json
+- libxml
+- mbstring
+- opcache
+- openssl
+- pcre
+- phar
+- readline
+- session
+- tokenizer 
+- xml
+- zlib
+- pdo
+
 ## Common Use Cases
 
 ### Development Container with Composer
