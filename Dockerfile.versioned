@@ -1,0 +1,4 @@
+FROM ghcr.io/glimmer-labs/wolfi-php:latest
+
+ARG PHP_VERSION
+RUN install-php $PHP_VERSION

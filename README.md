@@ -6,6 +6,13 @@ A Docker image based on Wolfi Linux "optimized" for Laravel applications.
 FROM ghcr.io/glimmer-labs/wolfi-php:latest
 ```
 
+There are also images available with pre-installed PHP version:
+
+```dockerfile
+FROM ghcr.io/glimmer-labs/wolfi-php:<php-version>
+```
+> Replace `<php-version>` with the desired PHP version. Supported versions are any PHP version that Wolfi supports (e.g., `8.3`, `8.4`, `8.5`, etc.)
+
 ## Overview
 
 This Docker image provides a lightweight and secure environment for running Laravel applications. It's based on the Wolfi Linux (un)distribution, which is designed specifically for containers.

@@ -14,6 +14,10 @@ variable "WOLFI_DIGEST" {
   default = "latest"
 }
 
+variable "PHP_VERSION" {
+  default = "none"
+}
+
 target default {
   context = "."
   dockerfile = "Dockerfile"
@@ -29,5 +33,14 @@ target default {
       "org.opencontainers.image.url" = "https://github.com/${IMAGE_OWNER}/${IMAGE_NAME}/pkgs/container/${IMAGE_NAME}",
       "org.opencontainers.image.vendor" = "Glimmer Labs",
       "org.opencontainers.image.description" = "A Docker image based on Wolfi Linux 'optimized' for Laravel applications. Includes scripts to easily install PHP, Composer, and required PHP extensions.",
+  }
+}
+
+target versioned {
+  inherits = ["default"]
+  dockerfile = "Dockerfile.versioned"
+  tags = ["${REGISTRY}/${IMAGE_OWNER}/${IMAGE_NAME}:${PHP_VERSION}"]
+  args = {
+    PHP_VERSION = "${PHP_VERSION}"
   }
 }
