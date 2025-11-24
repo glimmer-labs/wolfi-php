@@ -3,6 +3,8 @@
 setup() {
   MOCKDIR="$(mktemp -d)"
   cp ./tests/mocks/* "$MOCKDIR/"
+  cp ./rootfs/usr/local/bin/echo-color "$MOCKDIR/echo-color"
+  cp ./rootfs/usr/local/bin/list-installed-modules "$MOCKDIR/list-installed-modules"
   chmod +x "$MOCKDIR/"*
 
   export PATH="$MOCKDIR:$PATH"
@@ -37,8 +39,9 @@ teardown() {
 @test "installs PHP without composer" {
   run ./install-php-test.sh 8.3
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Installing PHP 8.3 and core extensions for Laravel..."* ]]
-  [[ "$output" == *"PHP 8.3 and Laravel required extensions installation completed successfully."* ]]
+  [[ "$output" == *"Installing PHP 8.3..."* ]]
+  [[ "$output" == *"Installing base extensions for Laravel..."* ]]
+  [[ "$output" == *"PHP 8.3 and base Laravel required extensions installation completed successfully."* ]]
 }
 
 @test "installs PHP with composer" {
@@ -46,21 +49,23 @@ teardown() {
   [ "$status" -eq 0 ]
   [[ "$output" == *"Installing Composer..."* ]]
   [[ "$output" == *"install-composer called"* ]]
-  [[ "$output" == *"PHP 8.3, Laravel required extensions and Composer installation completed successfully."* ]]
+  [[ "$output" == *"PHP 8.3, base Laravel required extensions and Composer installation completed successfully."* ]]
 }
 
 @test "installs FrankenPHP without composer" {
   run ./install-php-test.sh 8.3 --frankenphp
   [ "$status" -eq 0 ]
   echo $output
-  [[ "$output" == *"Installing FrankenPHP 8.3 and core extensions for Laravel..."* ]]
-  [[ "$output" == *"FrankenPHP 8.3 and Laravel required extensions installation completed successfully."* ]]
+  [[ "$output" == *"Installing FrankenPHP 8.3..."* ]]
+  [[ "$output" == *"Installing base extensions for Laravel..."* ]]
+  [[ "$output" == *"FrankenPHP 8.3 and base Laravel required extensions installation completed successfully."* ]]
 }
 
 @test "installs FrankenPHP with composer" {
   run ./install-php-test.sh 8.3 --composer --frankenphp
   [ "$status" -eq 0 ]
   echo $output
-  [[ "$output" == *"Installing FrankenPHP 8.3 and core extensions for Laravel..."* ]]
-  [[ "$output" == *"FrankenPHP 8.3, Laravel required extensions and Composer installation completed successfully."* ]]
+  [[ "$output" == *"Installing FrankenPHP 8.3..."* ]]
+  [[ "$output" == *"Installing base extensions for Laravel..."* ]]
+  [[ "$output" == *"FrankenPHP 8.3, base Laravel required extensions and Composer installation completed successfully."* ]]
 }
