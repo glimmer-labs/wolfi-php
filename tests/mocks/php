@@ -17,5 +17,11 @@ if echo "$@" | grep -q 'copy('; then
   exit 0
 fi
 
+# Simulate `php -m` to list installed extensions
+if echo "$@" | grep -q "\-\m"; then
+  echo '[PHP Modules]\nCore\ndate\nSPL\nzlib\n\n[Zend Modules]\nZend OPcache\n'
+  exit 0
+fi
+
 echo "php mock called with $@" >&2
 exit 1

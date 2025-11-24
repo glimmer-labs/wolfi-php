@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Returns a space-separated list of extensions compiled with the current PHP binary
+
+set -e
+
+error_exit() {
+    echo "ERROR: $1" >&2
+    exit 1
+}
+
+if ! command -v php > /dev/null 2>&1; then
+    error_exit "PHP is not installed"
+fi
+
+# Get compiled modules and output as a single line
+php -m 2>/dev/null | awk '
+  $0 == "[PHP Modules]" { section = "php"; next }
+  $0 == "[Zend Modules]" { section = "zend"; next }
+  /^\[/ { section = "" }
+
+  section == "" || NF == 0 { next }
+
+  {
+    mod = $0
+
+    # Skip some built-in modules
+    if (mod == "Core") next
+    if (mod == "SPL") next
+    if (mod == "Reflection") next
+
+    # Normalize Zend OPcache
+    if (mod == "Zend OPcache") {
+      print "opcache"
+      next
+    }
+
+    print tolower(mod)
+  }
+' | xargs
