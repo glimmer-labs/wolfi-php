@@ -10,15 +10,13 @@
 #   - Verifies installer integrity with SHA-384 checksum
 #   - Self-removes after successful installation
 
-# Function to display error messages and exit
 error_exit() {
-    echo "ERROR: $1" >&2
+    echo-color red "ERROR: $1" >&2
     exit 1
 }
 
-# Check if PHP is available
 if ! command -v php >/dev/null 2>&1; then
-    error_exit "PHP command not found. Please install PHP first."
+    error_exit "PHP is not installed"
 fi
 
 # Download and verify the Composer installer
@@ -29,9 +27,8 @@ ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
 # Verify checksum for security
 if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]
 then
-    >&2 echo 'ERROR: Invalid installer checksum'
     rm composer-setup.php
-    exit 1
+    error_exit 'Invalid installer checksum'
 fi
 
 # Install Composer globally

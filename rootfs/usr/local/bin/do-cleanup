@@ -17,7 +17,7 @@ done
 remove-composer
 
 # Remove all scripts in /usr/local/bin (except this script for now)
-for script in install-composer add-php-extensions add-composer-extensions install-php remove-composer add-shyim-repo add-glimmer-labs-repo; do
+for script in install-composer add-php-extensions add-composer-extensions install-php remove-composer add-shyim-repo add-glimmer-labs-repo list-installed-modules echo-color; do
     if [ -f "/usr/local/bin/$script" ]; then
         echo "Removing $script"
         rm "/usr/local/bin/$script"
