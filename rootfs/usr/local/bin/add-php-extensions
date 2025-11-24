@@ -9,17 +9,13 @@
 
 set -e
 
+# ----------------
+# Helper functions
+# ----------------
 error_exit() {
-    echo "ERROR: $1" >&2
+    echo-color red "ERROR: $1" >&2
     exit 1
 }
-
-PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
-PHP_APK_PREFIX=$(apk info -e "frankenphp-${PHP_VERSION}" > /dev/null 2>&1 && echo "php-frankenphp" || echo "php")
-
-if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
-    error_exit "Invalid PHP version format: $PHP_VERSION"
-fi
 
 map_extension() {
     _ext="$1"
@@ -54,10 +50,38 @@ ext_to_apk() {
     return
 }
 
+# -----------
+# Main script
+# -----------
+if ! command -v php > /dev/null 2>&1; then
+    error_exit "PHP is not installed"
+fi
+
+PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
+PHP_APK_PREFIX=$(apk info -e "frankenphp-${PHP_VERSION}" > /dev/null 2>&1 && echo "php-frankenphp" || echo "php")
+
+if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
+    error_exit "Invalid PHP version format: $PHP_VERSION"
+fi
+
 # Collect all packages to install
+INSTALLED_MODULES=$(list-installed-modules)
+TMP_INSTALLED=$(mktemp)
+TMP_REQUESTED=$(mktemp)
+trap 'rm -f "$TMP_INSTALLED" "$TMP_REQUESTED"' EXIT
+printf '%s\n' $INSTALLED_MODULES > "$TMP_INSTALLED"
+printf '%s\n' $@ > "$TMP_REQUESTED"
+
+FILTERED_EXTENSIONS=$(grep -vxFf "$TMP_INSTALLED" "$TMP_REQUESTED" || true | xargs)
+MATCHING_EXTENSIONS=$(grep -xFf "$TMP_INSTALLED" "$TMP_REQUESTED" || true | xargs)
+
 ALL_PACKAGES=""
 
-for ext in "$@"; do
+[ -n "$MATCHING_EXTENSIONS" ] && 
+echo-color yellow "⚠️  These extensions are already installed and will be skipped:" &&
+echo-color yellow "   > $(echo "$MATCHING_EXTENSIONS" | tr '\n' ' ' | sed 's/  */, /g; s/, $//')\n"
+
+for ext in $FILTERED_EXTENSIONS; do
     [ -n "$ext" ] || continue
     PACKAGES=$(map_extension "$ext")
     ALL_PACKAGES="$ALL_PACKAGES $PACKAGES"
@@ -70,11 +94,11 @@ if [ -z "$ALL_PACKAGES" ]; then
     exit 0
 fi
 
-echo "Installing extensions:"
-echo "$ALL_PACKAGES" | tr ' ' '\n'
+echo-color cyan "📦 Installing extensions:"
+echo "   > $(echo "$ALL_PACKAGES" | tr '\n' ' ' | sed 's/  */, /g; s/, $//')"
 
-if ! apk add --no-cache $ALL_PACKAGES; then
+if ! apk add --no-cache $ALL_PACKAGES --quiet; then
     error_exit "Failed to install extensions"
 fi
 
-echo "Extensions installation complete."
+echo-color green "✅ Extensions installation complete."
