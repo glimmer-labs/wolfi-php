@@ -3,6 +3,7 @@
 setup() {
   MOCKDIR="$(mktemp -d)"
   cp ./tests/mocks/* "$MOCKDIR/"
+  cp ./rootfs/usr/local/bin/echo-color "$MOCKDIR/echo-color"
   chmod +x "$MOCKDIR/"*
 
   export PATH="$MOCKDIR:$PATH"
@@ -45,7 +46,7 @@ teardown() {
   export COMPOSER_MISSING_EXTENSIONS="ext-pdo missing \n ext-sodium missing"
   run ./add-composer-extensions-test.sh --check-only
   [ "$status" -eq 1 ]
-  [[ "$output" == *"Missing PHP extensions:"* ]]
+  [[ "$output" == *"Found missing PHP extensions."* ]]
   [[ "$output" == *"- pdo"* ]]
   [[ "$output" == *"- sodium"* ]]
 }

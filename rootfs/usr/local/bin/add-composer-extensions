@@ -13,25 +13,27 @@
 #   add-composer-extensions --no-dev
 #
 
-# Exit on error
 set -e
 
-# Get PHP version directly from PHP
-PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
-
-# Validate PHP version format
-if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
-    echo "ERROR: Invalid PHP version format: $PHP_VERSION" >&2
+error_exit() {
+    echo-color red "ERROR: $1" >&2
     exit 1
+}
+
+if ! command -v php > /dev/null 2>&1; then
+    error_exit "PHP is not installed"
 fi
 
+PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
 
-# Initialize variables
+if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
+    error_exit "Invalid PHP version format: $PHP_VERSION"
+fi
+
 NO_DEV_FLAG=""
 CHECK_ONLY_FLAG=false
 COMPOSER_INSTALLED=true
 
-# Parse arguments
 for arg in "$@"; do
     case "$arg" in
         "--no-dev")
@@ -41,8 +43,7 @@ for arg in "$@"; do
             CHECK_ONLY_FLAG=true
             ;;
         *)
-            echo "Unknown option: $arg" >&2
-            exit 1
+            error_exit "Unknown option: $arg"
             ;;
     esac
 done
@@ -51,50 +52,44 @@ if ! command -v composer >/dev/null 2>&1; then
     COMPOSER_INSTALLED=false
 fi
 
-# Install composer if not already installed
 if [ "$COMPOSER_INSTALLED" = false ]; then
     install-composer > /dev/null 2>&1
 fi
 
-echo "Checking for additional missing PHP extensions..."
+echo-color cyan "📋 Checking for additional missing PHP extensions..."
 
 # Check for composer.json and composer.lock
 if [ ! -f "composer.json" ]; then
-    echo "ERROR: composer.json file not found. Please ensure it exists." >&2
-    exit 1
+    error_exit "composer.json file not found. Please ensure it exists."
 fi
 
 if [ ! -f "composer.lock" ]; then
-    echo "ERROR: composer.lock file not found. Please ensure it exists." >&2
-    exit 1
+    error_exit "composer.lock file not found. Please ensure it exists."
 fi
 
 # Check for missing PHP extensions using composer
 MISSING_REQS=$(composer check-platform-reqs $NO_DEV_FLAG --lock 2>/dev/null | grep -i "missing" || true)
 
-# Process missing requirements if any were found
 if [ -z "$MISSING_REQS" ]; then
-    echo "No missing PHP extensions found."
+    echo-color green "✅ No missing PHP extensions found."
     exit 0
 else
-    echo "Found missing PHP extensions."
+    echo-color yellow "⚠️  Found missing PHP extensions."
 
     # Extract extension names from composer output
     MISSING_EXTENSIONS=$(echo "$MISSING_REQS" | awk '{print $1}' | sed 's/ext-//' | tr '\n' ' ' | xargs)
 
     if [ "$CHECK_ONLY_FLAG" = true ]; then
-        echo "Missing PHP extensions:" >&2
         for ext in $MISSING_EXTENSIONS; do
             echo "  - $ext" >&2
         done
-        echo "Please install them to continue." >&2
+        echo-color yellow "Please install them to continue." >&2
         exit 1
     else
         add-php-extensions $MISSING_EXTENSIONS || exit $?
     fi
 fi
 
-# Remove composer if it was not installed before running this script
 if [ "$COMPOSER_INSTALLED" = false ]; then
     remove-composer > /dev/null 2>&1
 fi
