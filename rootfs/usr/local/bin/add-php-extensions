@@ -50,6 +50,8 @@ ext_to_apk() {
     return
 }
 
+[ -t 1 ] && QUIET="--quiet" || QUIET=""
+
 # -----------
 # Main script
 # -----------
@@ -97,7 +99,7 @@ fi
 echo-color cyan "📦 Installing extensions:"
 echo "   > $(echo "$ALL_PACKAGES" | tr '\n' ' ' | sed 's/  */, /g; s/, $//')"
 
-if ! apk add --no-cache $ALL_PACKAGES --quiet; then
+if ! apk add --no-cache $ALL_PACKAGES $QUIET; then
     error_exit "Failed to install extensions"
 fi
 

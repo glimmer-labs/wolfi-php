@@ -22,6 +22,8 @@ error_exit() {
     exit 1
 }
 
+[ -t 1 ] && QUIET="--quiet" || QUIET=""
+
 if [ $# -eq 0 ]; then
     error_exit "PHP version is required Usage: php-install <php_version> [--composer] [--frankenphp]"
 fi
@@ -62,7 +64,7 @@ if ! apk add --no-cache \
     ca-certificates \
     $([ "$PHP_APK_PREFIX" = "php-frankenphp" ] && echo "frankenphp-${PHP_VERSION} ${PHP_APK_PREFIX}-${PHP_VERSION}-pcntl" || echo "") \
     ${PHP_APK_PREFIX}-${PHP_VERSION} \
-    curl --quiet; then
+    curl $QUIET; then
     error_exit "Failed to install PHP $PHP_VERSION"
 fi
 
@@ -80,7 +82,7 @@ if [ -n "$FILTERED_EXTENSIONS" ]; then
     APK_PACKAGES=$(printf '%s\n' $FILTERED_EXTENSIONS | sed "s#^#${PHP_APK_PREFIX}-${PHP_VERSION}-#")
 
     echo-color cyan "⚙️  Installing base extensions for Laravel..."
-    if ! apk add --no-cache $APK_PACKAGES --quiet; then
+    if ! apk add --no-cache $APK_PACKAGES $QUIET; then
         error_exit "Failed to install PHP base extensions: $FILTERED_EXTENSIONS"
     fi
 fi
