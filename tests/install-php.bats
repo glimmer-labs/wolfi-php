@@ -56,16 +56,44 @@ teardown() {
   run ./install-php-test.sh 8.3 --frankenphp
   [ "$status" -eq 0 ]
   echo $output
-  [[ "$output" == *"Installing FrankenPHP 8.3..."* ]]
+  [[ "$output" == *"Installing PHP 8.3 ZTS with FrankenPHP..."* ]]
   [[ "$output" == *"Installing base extensions for Laravel..."* ]]
-  [[ "$output" == *"FrankenPHP 8.3 and base Laravel required extensions installation completed successfully."* ]]
+  [[ "$output" == *"PHP 8.3 ZTS with FrankenPHP and base Laravel required extensions installation completed successfully."* ]]
 }
 
 @test "installs FrankenPHP with composer" {
   run ./install-php-test.sh 8.3 --composer --frankenphp
   [ "$status" -eq 0 ]
   echo $output
-  [[ "$output" == *"Installing FrankenPHP 8.3..."* ]]
+  [[ "$output" == *"Installing PHP 8.3 ZTS with FrankenPHP..."* ]]
   [[ "$output" == *"Installing base extensions for Laravel..."* ]]
-  [[ "$output" == *"FrankenPHP 8.3, base Laravel required extensions and Composer installation completed successfully."* ]]
+  [[ "$output" == *"PHP 8.3 ZTS with FrankenPHP, base Laravel required extensions and Composer installation completed successfully."* ]]
+}
+
+@test "installs PHP ZTS version without composer" {
+  run ./install-php-test.sh 8.3 --zts
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Installing PHP 8.3 ZTS..."* ]]
+  [[ "$output" == *"Installing base extensions for Laravel..."* ]]
+  [[ "$output" == *"PHP 8.3 ZTS and base Laravel required extensions installation completed successfully."* ]]
+}
+
+@test "installs PHP ZTS version with composer" {
+  run ./install-php-test.sh 8.3 --composer --zts
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Installing PHP 8.3 ZTS..."* ]]
+  [[ "$output" == *"Installing Composer..."* ]]
+  [[ "$output" == *"install-composer called"* ]]
+  [[ "$output" == *"PHP 8.3 ZTS, base Laravel required extensions and Composer installation completed successfully."* ]]
+}
+
+@test "detects PHP ZTS already installed" {
+  export PHP_ZTS=1
+
+  run ./install-php-test.sh 8.3 --composer
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Installing PHP 8.3 ZTS..."* ]]
+  [[ "$output" == *"Installing Composer..."* ]]
+  [[ "$output" == *"install-composer called"* ]]
+  [[ "$output" == *"PHP 8.3 ZTS, base Laravel required extensions and Composer installation completed successfully."* ]]
 }

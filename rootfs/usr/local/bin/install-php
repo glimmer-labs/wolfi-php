@@ -7,11 +7,12 @@
 # Arguments:
 #   php_version    PHP version to install (e.g., 8.3)
 #   --composer     If provided, also installs Composer
+#   --zts          If provided, installs ZTS version of PHP
 #   --frankenphp   If provided, installs frankenphp php and extensions instead of normal php
 #
 # Examples:
 #   install-php 8.3
-#   install-php 8.4 --composer --frankenphp
+#   install-php 8.4 --composer --zts --frankenphp
 
 EXTENSIONS="ctype curl date dom fileinfo filter hash iconv json libxml mbstring opcache openssl pcre phar readline session tokenizer xml zlib pdo"
 
@@ -35,17 +36,24 @@ if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
     error_exit "Invalid PHP version format: $PHP_VERSION. Expected format: X.Y (e.g., 8.3)"
 fi
 
-PHP_APK_PREFIX="php"
+PHP_APK_PACKAGE="php-$PHP_VERSION"
+INSTALL_ZTS=false
 INSTALL_COMPOSER=false
+INSTALL_FRANKENPHP=false
 
 for arg in "$@"; do
     case "$arg" in
         "--composer")
             INSTALL_COMPOSER=true
             ;;
+        "--zts")
+            INSTALL_ZTS=true
+            PHP_APK_PACKAGE="php-$PHP_VERSION-zts"
+            ;;
         "--frankenphp")
-            add-shyim-repo
-            PHP_APK_PREFIX="php-frankenphp"
+            INSTALL_ZTS=true
+            INSTALL_FRANKENPHP=true
+            PHP_APK_PACKAGE="php-$PHP_VERSION-zts"
             ;;
         *)
             error_exit "Unknown option: $arg"
@@ -53,18 +61,26 @@ for arg in "$@"; do
     esac
 done
 
-# Fallback in case the script is called twice and the first time was with --frankenphp
-PHP_APK_PREFIX=$(apk info -e "frankenphp-${PHP_VERSION}" > /dev/null 2>&1 && echo "php-frankenphp" || echo $PHP_APK_PREFIX)
+# If PHP is already present and is ZTS, prefer the ZTS package name; otherwise keep the current choice
+if command -v php > /dev/null 2>&1; then
+    if php -r 'exit(PHP_ZTS ? 0 : 1);'; then
+        INSTALL_ZTS=true
+        PHP_APK_PACKAGE="php-$PHP_VERSION-zts"
+    fi
+fi
 
-ENGINE=$([ "$PHP_APK_PREFIX" = "php-frankenphp" ] && echo "FrankenPHP" || echo "PHP")
-echo-color cyan "🐘 Installing $ENGINE $PHP_VERSION..."
+EXTRA=""
+[ "$INSTALL_ZTS" = true ] && EXTRA="${EXTRA} ZTS"
+[ "$INSTALL_FRANKENPHP" = true ] && EXTRA="${EXTRA} with FrankenPHP"
+EXTRA=$(echo "$EXTRA" | sed 's/^ *//')
+echo-color cyan "🐘 Installing PHP $PHP_VERSION${EXTRA:+ $EXTRA}..."
 
 # Install PHP
 if ! apk add --no-cache \
     ca-certificates \
-    $([ "$PHP_APK_PREFIX" = "php-frankenphp" ] && echo "frankenphp-${PHP_VERSION} ${PHP_APK_PREFIX}-${PHP_VERSION}-pcntl" || echo "") \
-    ${PHP_APK_PREFIX}-${PHP_VERSION} \
-    curl $QUIET; then
+    ${PHP_APK_PACKAGE} \
+    $([ "$INSTALL_FRANKENPHP" = true ] && echo "frankenphp ${PHP_APK_PACKAGE}-pcntl" || echo "") \
+    $QUIET; then
     error_exit "Failed to install PHP $PHP_VERSION"
 fi
 
@@ -79,7 +95,7 @@ FILTERED_EXTENSIONS=$(grep -vxFf "$TMP_INSTALLED" "$TMP_REQUESTED" || true)
 
 # Install base extensions required for Laravel
 if [ -n "$FILTERED_EXTENSIONS" ]; then
-    APK_PACKAGES=$(printf '%s\n' $FILTERED_EXTENSIONS | sed "s#^#${PHP_APK_PREFIX}-${PHP_VERSION}-#")
+    APK_PACKAGES=$(printf '%s\n' $FILTERED_EXTENSIONS | sed "s#^#${PHP_APK_PACKAGE}-#")
 
     echo-color cyan "⚙️  Installing base extensions for Laravel..."
     if ! apk add --no-cache $APK_PACKAGES $QUIET; then
@@ -95,7 +111,7 @@ if [ "$INSTALL_COMPOSER" = true ]; then
         error_exit "Failed to install Composer"
     fi
 
-    echo-color green "✅ $ENGINE $PHP_VERSION, base Laravel required extensions and Composer installation completed successfully."
+    echo-color green "✅ PHP $PHP_VERSION${EXTRA:+ $EXTRA}, base Laravel required extensions and Composer installation completed successfully."
 else
-    echo-color green "✅ $ENGINE $PHP_VERSION and base Laravel required extensions installation completed successfully."
+    echo-color green "✅ PHP $PHP_VERSION${EXTRA:+ $EXTRA} and base Laravel required extensions installation completed successfully."
 fi

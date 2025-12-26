@@ -80,23 +80,25 @@ teardown() {
   [[ "$output" == *"apk called with: add --no-cache php-8.3-pdo_sqlite"* ]]
 }
 
-@test "installs frankenphp single extension" {
+@test "installs php zts and/or frankenphp single extension" {
   export APK_INFO_MOCK=1
+  export PHP_ZTS=1
 
   run ./add-php-extensions-test.sh redis
   [ "$status" -eq 0 ]
   [[ "$output" == *"Installing extensions:"* ]]
-  [[ "$output" == *"php-8.3-redis"* ]]
-  [[ "$output" == *"apk called with: add --no-cache php-frankenphp-8.3-redis"* ]]
+  [[ "$output" == *"php-8.3-zts-redis"* ]]
+  [[ "$output" == *"apk called with: add --no-cache php-8.3-zts-redis"* ]]
   [[ "$output" == *"Extensions installation complete."* ]]
 }
 
-@test "installs frankenphp mapped extensions (pgsql + pdo)" {
+@test "installs php zts and/or frankenphp mapped extensions (pgsql + pdo)" {
   export APK_INFO_MOCK=1
+  export PHP_ZTS=1
 
   run ./add-php-extensions-test.sh pgsql
   [ "$status" -eq 0 ]
-  [[ "$output" == *"php-8.3-pgsql"* ]]
-  [[ "$output" == *"php-8.3-pdo_pgsql"* ]]
-  [[ "$output" == *"apk called with: add --no-cache php-frankenphp-8.3-pgsql php-frankenphp-8.3-pdo_pgsql"* ]]
+  [[ "$output" == *"php-8.3-zts-pgsql"* ]]
+  [[ "$output" == *"php-8.3-zts-pdo_pgsql"* ]]
+  [[ "$output" == *"apk called with: add --no-cache php-8.3-zts-pgsql php-8.3-zts-pdo_pgsql"* ]]
 }

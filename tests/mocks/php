@@ -6,6 +6,14 @@ if echo "$@" | grep -q 'PHP_MAJOR_VERSION'; then
   exit 0
 fi
 
+if echo "$@" | grep -q 'PHP_ZTS'; then
+  if [ "$PHP_ZTS" = "1" ]; then
+    exit 0
+  else
+    exit 1
+  fi
+fi
+
 # Simulate hash_file for composer checksum
 if echo "$@" | grep -q 'hash_file'; then
   echo "dummyhash"

@@ -46,7 +46,7 @@ map_extension() {
 
 ext_to_apk() {
     _ext="$1"
-    echo "${PHP_APK_PREFIX}-${PHP_VERSION}-${_ext}"
+    echo "${PHP_APK_PACKAGE}-${_ext}"
     return
 }
 
@@ -60,7 +60,8 @@ if ! command -v php > /dev/null 2>&1; then
 fi
 
 PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
-PHP_APK_PREFIX=$(apk info -e "frankenphp-${PHP_VERSION}" > /dev/null 2>&1 && echo "php-frankenphp" || echo "php")
+PHP_ZTS=$({ php -r 'exit(PHP_ZTS ? 0 : 1);' && echo "-zts"; } || true)
+PHP_APK_PACKAGE="php-${PHP_VERSION}${PHP_ZTS}"
 
 if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
     error_exit "Invalid PHP version format: $PHP_VERSION"
