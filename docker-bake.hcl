@@ -44,3 +44,12 @@ target versioned {
     PHP_VERSION = "${PHP_VERSION}"
   }
 }
+
+target versioned-zts {
+  inherits = ["default"]
+  dockerfile = "Dockerfile.versioned"
+  tags = ["${REGISTRY}/${IMAGE_OWNER}/${IMAGE_NAME}:${PHP_VERSION}-zts"]
+  args = {
+    PHP_VERSION = "${PHP_VERSION} --zts"
+  }
+}

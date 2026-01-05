@@ -40,7 +40,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -78,10 +78,12 @@ jobs:
   get-php-versions:
     runs-on: ubuntu-latest
     outputs:
-      php-matrix: ${{ steps.set-matrix.outputs.php-versions }}
+      php-nts: ${{ steps.nts.outputs.php-versions }}
+      php-zts: ${{ steps.zts.outputs.php-versions }}
+      php-matrix: ${{ steps.combine.outputs.php-matrix }}
     steps:
       - name: Fetch PHP versions from Wolfi
-        id: set-matrix
+        id: nts
         run: |
           VERSIONS=$(curl -sL https://packages.wolfi.dev/os/x86_64/APKINDEX.tar.gz \
             | tar -xOzf - APKINDEX \
@@ -91,6 +93,29 @@ jobs:
             | awk '$1 >= 8.1' \
             | jq -R . | jq -s . | tr -d '\n')
           echo "php-versions=$VERSIONS" >> $GITHUB_OUTPUT
+
+      - name: Fetch PHP ZTS versions from Glimmer Labs
+        id: zts
+        run: |
+          VERSIONS=$(curl -sL https://glimmer-labs.github.io/wolfi/x86_64/APKINDEX.tar.gz \
+            | tar -xOzf - APKINDEX \
+            | grep -Po 'P:php-[0-9]+\.[0-9]+-zts' \
+            | sed 's/P:php-//' \
+            | sort -u \
+            | awk '$1 >= 8.1' \
+            | jq -R . | jq -s . | tr -d '\n')
+          echo "php-versions=$VERSIONS" >> $GITHUB_OUTPUT
+      
+      # Glimmer Labs already versions are outputed as "X.Y-zts", so we can combine both matrices directly
+      - name: Combine PHP version matrices
+        id: combine
+        run: |
+          NTS_VERSIONS='${{ steps.nts.outputs.php-versions }}'
+          ZTS_VERSIONS='${{ steps.zts.outputs.php-versions }}'
+
+          COMBINED_MATRIX=$(jq -s -c '.[0] + .[1]' <(echo "$NTS_VERSIONS") <(echo "$ZTS_VERSIONS"))
+
+          echo "php-matrix=$COMBINED_MATRIX" >> $GITHUB_OUTPUT
 
   versioned-bake:
     runs-on: ubuntu-latest
@@ -102,7 +127,7 @@ jobs:
         php-version: ${{ fromJSON(needs.get-php-versions.outputs.php-matrix) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -122,6 +147,17 @@ jobs:
           echo "IMAGE_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
           echo "IMAGE_NAME=$(echo '${{ github.repository }}' | cut -d'/' -f2 | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+      - name: Check if NTS or ZTS and set bake target
+        run: |
+          VERSION="${{ matrix.php-version }}"
+          if [[ "$VERSION" == *"-zts" ]]; then
+            echo "PHP_VERSION=${VERSION%-zts}" >> $GITHUB_ENV
+            echo "TARGET=versioned-zts" >> $GITHUB_ENV
+          else
+            echo "PHP_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "TARGET=versioned" >> $GITHUB_ENV
+          fi
+
       - name: Build and push Docker image
         uses: docker/bake-action@v6
         env:
@@ -129,11 +165,11 @@ jobs:
           IMAGE_OWNER: ${{ env.IMAGE_OWNER }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
           WOLFI_DIGEST:  ${{ needs.wolfi-digest.outputs.digest }}
-          PHP_VERSION: ${{ matrix.php-version }}
+          PHP_VERSION: ${{ env.PHP_VERSION }}
         with:
           push: true
           pull: true
-          targets: versioned
+          targets: ${{ env.TARGET }}
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
