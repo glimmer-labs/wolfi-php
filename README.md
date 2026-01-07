@@ -1,39 +1,45 @@
 # Wolfi PHP
 
-A Docker image based on Wolfi Linux "optimized" for Laravel applications.
-
+A Docker image based on Wolfi Linux "fine tuned" for Laravel applications.
 ```dockerfile
 FROM ghcr.io/glimmer-labs/wolfi-php:latest
 ```
 
-There are also images available with pre-installed PHP version:
-
+There are images available with pre-installed PHP version:
 ```dockerfile
 FROM ghcr.io/glimmer-labs/wolfi-php:<php-version>
 ```
 > Replace `<php-version>` with the desired PHP version. Supported versions are any PHP version that Wolfi supports (e.g., `8.3`, `8.4`, `8.5`, etc.)
 
-> FrankenPHP is not supported in pre-built images. You must install it using the `install-php` script with the `--frankenphp` flag. 
+Also available with PHP ZTS:
+```dockerfile
+FROM ghcr.io/glimmer-labs/wolfi-php:<php-version>-zts
+```
+> Replace `<php-version>` with the desired PHP version. Supported versions are any PHP version that Glimmer Labs APK repository supports (e.g., `8.3`, `8.4`, `8.5`, etc.)
+
+> [!NOTE]  
+> FrankenPHP is not available as a prebuilt image. You must use a ZTS image and use either `apk add frankenphp` or `install-php <php-version> --frankenphp`. 
 
 ## Overview
 
 This Docker image provides a lightweight and secure environment for running Laravel applications. It's based on the Wolfi Linux (un)distribution, which is designed specifically for containers.
 
-The image includes scripts to easily install PHP, Composer, and required PHP extensions for Laravel applications.
+The image includes scripts to easily install PHP, Composer, and any required PHP extension.
 
 ## Base Features
 
 - Based on Wolfi Linux (cgr.dev/chainguard/wolfi-base)
-- Supports any PHP version that Wolfi supports (8.0, 8.3, 8.4, etc.)
+- Supports any PHP NTS version that Wolfi supports (8.1, 8.3, 8.4, etc.)
+- Supports any PHP ZTS version that Glimmer Labs APK repository supports (8.3, 8.4, 8.5, etc.)
 - Installation of default extensions required for Laravel applications
-- Easy installation of extra PHP extensions supported by Wolfi
+- Easy installation of extra PHP extensions supported by Wolfi or Glimmer Labs APK repository
 - Automatic detection and installation of extensions required by your Composer dependencies
 - Adds www-data user and group for FPM process (not installed by default)
-- Supports using FrankenPHP as an alternative to base PHP (uses [Shyim repository](https://github.com/shyim/wolfi-php))
+- Supports using FrankenPHP as an alternative to base PHP (uses [Glimmer Labs repository](https://github.com/glimmer-labs/wolfi))
 
 ## FrankenPHP Features
 If you choose to use FrankenPHP instead of the base PHP, the image will also include the following features:
-- Support for runnning Laravel Octane applications with FrankenPHP (requires `pcntl` extension, which is installed by default when using FrankenPHP)
+- Support for runnning Laravel Octane applications with FrankenPHP (requires `pcntl` extension, which is installed by default when using FrankenPHP flag)
 - XDG Config and Data directories set in the same way as the official FrankenPHP image
 - A default Caddyfile as the official FrankenPHP does, with the same available environment variables:
     - `SERVER_NAME` - The server name for Caddy. Default is `localhost` - This controls also the listing port of Caddy, use `:8000` as example for port `8000`
@@ -83,9 +89,10 @@ install-php <php_version> [--composer] [--frankenphp]
 Arguments:
 - `php_version`: PHP version to install (e.g., 8.3, 8.4)
 - `--composer`: Optional flag to also install Composer
-- `--frankenphp`: Optional flag to install FrankenPHP instead of base PHP (uses [Shyim repository](https://github.com/shyim/wolfi-php))
+- `--frankenphp`: Optional flag to install FrankenPHP instead of base PHP (uses [Glimmer Labs repository](https://github.com/glimmer-labs/wolfi))
+- `--zts`: Optional flag to install PHP ZTS version (automatically enabled when using `--frankenphp`)
 
-> Is not required to use `install-php` if you are using a pre-built image with a specific PHP version (e.g., `ghcr.io/glimmer-labs/wolfi-php:8.5`)
+> Is not required to use `install-php` if you are using a pre-built image with a specific PHP version (e.g., `ghcr.io/glimmer-labs/wolfi-php:8.5` or `ghcr.io/glimmer-labs/wolfi-php:8.5-zts`)
 
 ### add-php-extensions
 
