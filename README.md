@@ -41,7 +41,7 @@ The image includes scripts to easily install PHP, Composer, and any required PHP
 If you choose to use FrankenPHP instead of the base PHP, the image will also include the following features:
 - Support for runnning Laravel Octane applications with FrankenPHP (requires `pcntl` extension, which is installed by default when using FrankenPHP flag)
 - XDG Config and Data directories set in the same way as the official FrankenPHP image
-- A default Caddyfile as the official FrankenPHP does, with the same available environment variables:
+- A default Caddyfile is installed when FrankenPHP is used, is gotten from the official FrankenPHP repository, with the same available environment variables:
     - `SERVER_NAME` - The server name for Caddy. Default is `localhost` - This controls also the listing port of Caddy, use `:8000` as example for port `8000`
     - `FRANKENPHP_CONFIG` - Allows setting configuration for FrankenPHP specific like: `worker ./public/index.php`
     - `CADDY_GLOBAL_OPTIONS` - Allows setting global options for Caddy like: `debug`
