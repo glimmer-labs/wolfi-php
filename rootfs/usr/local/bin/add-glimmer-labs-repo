@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "https://glimmer-labs.github.io/wolfi" >> /etc/apk/repositories && \
+sed -i '1i https://wolfi.glimmerlabs.dev' /etc/apk/repositories && \
 cat <<EOF > /etc/apk/keys/glimmer-labs-signing.rsa.pub
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAujhU1omCi+9hmLm2bL0r
