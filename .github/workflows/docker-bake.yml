@@ -78,44 +78,19 @@ jobs:
   get-php-versions:
     runs-on: ubuntu-latest
     outputs:
-      php-nts: ${{ steps.nts.outputs.php-versions }}
-      php-zts: ${{ steps.zts.outputs.php-versions }}
-      php-matrix: ${{ steps.combine.outputs.php-matrix }}
+      php-matrix: ${{ steps.versions.outputs.php-matrix }}
     steps:
-      - name: Fetch PHP versions from Wolfi
-        id: nts
-        run: |
-          VERSIONS=$(curl -sL https://packages.wolfi.dev/os/x86_64/APKINDEX.tar.gz \
-            | tar -xOzf - APKINDEX \
-            | grep -Po 'P:php-[0-9]+\.[0-9]+' \
-            | sed 's/P:php-//' \
-            | sort -u \
-            | awk '$1 >= 8.1' \
-            | jq -R . | jq -s . | tr -d '\n')
-          echo "php-versions=$VERSIONS" >> $GITHUB_OUTPUT
-
-      - name: Fetch PHP ZTS versions from Glimmer Labs
-        id: zts
+      - name: Fetch PHP versions from Glimmer Labs
+        id: versions
         run: |
           VERSIONS=$(curl -sL https://wolfi.glimmerlabs.dev/x86_64/APKINDEX.tar.gz \
             | tar -xOzf - APKINDEX \
-            | grep -Po 'P:php-[0-9]+\.[0-9]+-zts' \
+            | grep -Po 'P:php-[0-9]+\.[0-9]+(?:-zts)?' \
             | sed 's/P:php-//' \
             | sort -u \
             | awk '$1 >= 8.1' \
             | jq -R . | jq -s . | tr -d '\n')
-          echo "php-versions=$VERSIONS" >> $GITHUB_OUTPUT
-      
-      # Glimmer Labs already versions are outputed as "X.Y-zts", so we can combine both matrices directly
-      - name: Combine PHP version matrices
-        id: combine
-        run: |
-          NTS_VERSIONS='${{ steps.nts.outputs.php-versions }}'
-          ZTS_VERSIONS='${{ steps.zts.outputs.php-versions }}'
-
-          COMBINED_MATRIX=$(jq -s -c '.[0] + .[1]' <(echo "$NTS_VERSIONS") <(echo "$ZTS_VERSIONS"))
-
-          echo "php-matrix=$COMBINED_MATRIX" >> $GITHUB_OUTPUT
+          echo "php-matrix=$VERSIONS" >> $GITHUB_OUTPUT
 
   versioned-bake:
     runs-on: ubuntu-latest
