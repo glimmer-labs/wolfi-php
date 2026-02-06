@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# install-frankenphp - Installs FrankenPHP with pcntl extension
+#
+
+set -e
+
+error_exit() {
+    echo-color red "ERROR: $1" >&2
+    exit 1
+}
+
+[ -t 1 ] && QUIET="--quiet" || QUIET=""
+
+if ! command -v php > /dev/null 2>&1; then
+    error_exit "PHP is not installed"
+fi
+
+PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
+PHP_ZTS=$({ php -r 'exit(PHP_ZTS ? 0 : 1);' && echo "-zts"; } || true)
+PHP_APK_PACKAGE="php-${PHP_VERSION}${PHP_ZTS}"
+
+if ! echo "$PHP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
+    error_exit "Invalid PHP version format: $PHP_VERSION"
+fi
+
+if ! echo "$PHP_ZTS" | grep -q "zts"; then
+    error_exit "FrankenPHP requires ZTS (Zend Thread Safety) enabled PHP. Current PHP version $PHP_VERSION is not ZTS."
+fi
+
+echo-color cyan "🐘𓄧🔩 Installing FrankenPHP $PHP_VERSION and pcntl extension"
+
+# Install FrankenPHP and pcntl extension
+if ! apk add --no-cache \
+    frankenphp ${PHP_APK_PACKAGE}-pcntl \
+    $QUIET; then
+    error_exit "Failed to install FrankenPHP-$PHP_VERSION"
+fi
+
+echo-color green "✅ FrankenPHP $PHP_VERSION installed successfully."

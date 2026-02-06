@@ -18,7 +18,7 @@ FROM ghcr.io/glimmer-labs/wolfi-php:<php-version>-zts
 > Replace `<php-version>` with the desired PHP version. Supported versions are any PHP version that Glimmer Labs APK repository supports (e.g., `8.3`, `8.4`, `8.5`, etc.)
 
 > [!NOTE]  
-> FrankenPHP is not available as a prebuilt image. You must use a ZTS image and use either `apk add frankenphp` or `install-php <php-version> --frankenphp`. 
+> FrankenPHP is not available as a prebuilt image. You must use a ZTS image and use `install-frankenphp` command. 
 
 ## Overview
 
@@ -93,6 +93,13 @@ Arguments:
 - `--zts`: Optional flag to install PHP ZTS version (automatically enabled when using `--frankenphp`)
 
 > Is not required to use `install-php` if you are using a pre-built image with a specific PHP version (e.g., `ghcr.io/glimmer-labs/wolfi-php:8.5` or `ghcr.io/glimmer-labs/wolfi-php:8.5-zts`)
+
+### install-frankenphp
+
+Installs FrankenPHP and pcntl extension.
+```
+install-frankenphp
+```
 
 ### add-php-extensions
 
