@@ -24,11 +24,29 @@ for script in install-composer add-php-extensions add-composer-extensions instal
     fi
 done
 
-if [ "$WOLFI_BASE_FLAG" = true ]; then
-    apk del apk-tools wolfi-keys wolfi-base
-fi
-
-# Finally, remove this script itself
+# Remove this script itself
 echo "Removing cleanup script"
 rm -- "$0"
+
+if [ "$WOLFI_BASE_FLAG" = true ]; then
+    echo "Removing wolfi-base apk-tools and busybox"
+    
+    busyboxFiles="$(apk info --no-cache -L busybox | tail -n +2)"
+    symlinks=""
+
+    for d in /bin /usr/bin /sbin /usr/sbin; do
+        for f in "$d"/*; do
+            if [ -L "$f" ]; then
+            target=$(readlink "$f")
+            case "$target" in
+                *busybox*) symlinks="$symlinks $f" ;;
+            esac
+            fi
+        done
+    done
+
+    apk del --no-cache apk-tools wolfi-keys wolfi-base
+    rm -rf $busyboxFiles $symlinks /etc/apk /lib/apk /var/lib/apk /usr/share/apk /etc/busybox*
+fi
+
 echo "Cleanup complete"
