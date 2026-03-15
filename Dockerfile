@@ -27,8 +27,8 @@ ENV PHP_EXPOSE=Off \
     PHP_SESSION_GC_PROBABILITY=1
 
 # PHP-FPM
-ENV PHP_FPM_USER=www-data \
-    PHP_FPM_GROUP=www-data \
+ENV PHP_FPM_USER=php \
+    PHP_FPM_GROUP=php \
     PHP_FPM_ACCESS_LOG=/proc/self/fd/2 \
     PHP_FPM_LISTEN=[::]:9000 \
     PHP_FPM_PM=dynamic \
@@ -41,11 +41,18 @@ ENV PHP_FPM_USER=www-data \
     PHP_FPM_PING_PATH=/-/fpm/ping
 
 EXPOSE 9000
-RUN adduser -u 82 www-data -D
 
 COPY rootfs/ /
 RUN chmod +x /usr/local/bin/*
 
 RUN add-glimmer-labs-repo
+
+# Create non-root user for running PHP / PHP-FPM / FrankenPHP
+RUN addgroup -S php 2>/dev/null || true && \
+    adduser -S -D -H -G php php 2>/dev/null || true
+
+# Prepare runtime directories and hand ownership to php
+RUN mkdir -p /var/log /config /data /app && \
+    chown -R php:php /var/log /config /data /app
 
 WORKDIR /app
