@@ -34,10 +34,10 @@ The image includes scripts to easily install PHP, Composer, and any required PHP
 - Installation of default extensions required for Laravel applications
 - Easy installation of extra PHP extensions supported by Wolfi or Glimmer Labs APK repository
 - Automatic detection and installation of extensions required by your Composer dependencies
-- Adds www-data user and group for FPM process (not installed by default)
+- By default it runs as root user to allow installing extensions and packages, but you can switch to a non-root user for running your application (e.g., `php` user already exists in the image)
 - Supports using FrankenPHP as an alternative to base PHP (uses [Glimmer Labs repository](https://github.com/glimmer-labs/wolfi))
 
-## FrankenPHP Features
+### FrankenPHP support
 If you choose to use FrankenPHP instead of the base PHP, the image will also include the following features:
 - Support for runnning Laravel Octane applications with FrankenPHP (requires `pcntl` extension, which is installed by default when using FrankenPHP flag)
 - XDG Config and Data directories set in the same way as the official FrankenPHP image
@@ -51,6 +51,8 @@ If you choose to use FrankenPHP instead of the base PHP, the image will also inc
 
 ## Notes
 This image has a default `WORKDIR` which is `/app`, so you can use it as your application root. You can change it in your Dockerfile if needed.
+
+This image runs as `root` by default to allow installing extensions and packages, but you can switch to a non-root user for running your application (e.g., `php` user already exists in the image).
 
 This image doesn't contain a default `ENTRYPOINT` or `CMD`, so you must set it in your Dockerfile. For example:
 - PHP-FPM:
@@ -96,7 +98,7 @@ Arguments:
 
 ### install-frankenphp
 
-Installs FrankenPHP and pcntl extension.
+Installs FrankenPHP and pcntl extension. Requires installed PHP to be ZTS version.
 ```
 install-frankenphp
 ```
@@ -151,7 +153,7 @@ do-cleanup
 ```
 
 Options:
-- `--wolfi-base`: Deletes the wolfi-base package, which is not needed in production images
+- `--wolfi-base`: Deletes the wolfi-base package, which is not needed in production images, making it somehow "distroless".Although the size of the image doesn't decrease, it removes shell and apk-tools putting it close to a real distroless image (its just like 20MB difference because it includes glibc)
 
 ## Environment Variables
 
@@ -177,8 +179,8 @@ PHP_SESSION_GC_PROBABILITY=1
 And for PHP-FPM:
 
 ```
-PHP_FPM_USER=www-data
-PHP_FPM_GROUP=www-data
+PHP_FPM_USER=php
+PHP_FPM_GROUP=php
 PHP_FPM_ACCESS_LOG=/proc/self/fd/2
 PHP_FPM_LISTEN=[::]:9000
 PHP_FPM_PM=dynamic
@@ -235,7 +237,7 @@ RUN composer install
 COPY . .
 ```
 
-### Production-Ready Container
+### One-Stage build
 
 For production environments, it's recommended to use the `--check-only` flag with `add-composer-extensions` to ensure all required extensions are already installed.
 > We recommend using a [multi-stage](#multi-stage-build-pattern) build pattern for production containers to keep the final image size small and secure.
@@ -256,16 +258,19 @@ RUN composer install --no-dev --prefer-dist --no-progress --no-interaction --opt
 
 # Set permissions to folders by the web server user
 # You can create a new user or adjust it as needed
-# www-data already exists in the base image
-RUN chown -R www-data:www-data storage bootstrap/cache
+# `php` already exists in the base image
+RUN chown -R php:php storage bootstrap/cache
 
 # Clean up helper scripts
 RUN do-cleanup
 
+# Set the user to `php` for running PHP processes
+USER php
+
 ENTRYPOINT ["your-entrypoint-command"]
 ```
 
-### Multi-Stage Build Pattern
+### Multi-Stage Production ready build
 
 We recommend using a multi-stage build pattern for production containers to keep the final image size small and secure.
 
@@ -300,10 +305,13 @@ COPY --link --from=composer /app /app
 
 # Set permissions to folders by the web server user
 # You can create a new user or adjust it as needed
-# www-data already exists in the base image
-RUN chown -R www-data:www-data storage bootstrap/cache
+# `php` already exists in the base image
+RUN chown -R php:php storage bootstrap/cache
 
 RUN do-cleanup
+
+# Set the user to `php` for running PHP processes
+USER php
 
 ENTRYPOINT ["your-entrypoint-command"]
 ```
